@@ -14,7 +14,7 @@ if (isset($_FILES['post_image']) && !empty($user_id)) {
 
     if (move_uploaded_file($_FILES["post_image"]["tmp_name"], $target_file)) {
         // Update this IP to your machine's IP
-        $full_url = "http://192.168.1.10/socially_api/" . $target_file;
+$full_url = "https://php-api-production-28f5.up.railway.app/uploads/" . $new_filename;
 
         $stmt = $conn->prepare("INSERT INTO posts (user_id, image_url, caption) VALUES (?, ?, ?)");
         $stmt->bind_param("iss", $user_id, $full_url, $caption);
@@ -31,4 +31,5 @@ if (isset($_FILES['post_image']) && !empty($user_id)) {
     echo json_encode(["status" => "error", "message" => "Missing data"]);
 }
 $conn->close();
+
 ?>
