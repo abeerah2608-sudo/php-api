@@ -1,22 +1,21 @@
 FROM php:8.2-apache
 
-# Install mysqli extension
+# Change Apache to listen on port 8080 for Railway
+RUN sed -i 's/80/8080/g' /etc/apache2/ports.conf
+RUN sed -i 's/:80/:8080/g' /etc/apache2/sites-available/000-default.conf
+
+# Install mysqli
 RUN docker-php-ext-install mysqli
 
 # Enable mod_rewrite
 RUN a2enmod rewrite
 
-# Copy public/ folder contents into /var/www/html/
+# Copy project files
 COPY public/ /var/www/html/
 
-# Ensure uploads folder exists
+# Create uploads folder
 RUN mkdir -p /var/www/html/uploads && chmod -R 777 /var/www/html/uploads
 
-# Set DocumentRoot to /var/www/html
-RUN sed -i 's!/var/www/html!/var/www/html!g' /etc/apache2/sites-available/000-default.conf
-
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["apache2-foreground"]
-RUN touch /var/log/apache2/error.log && chmod 666 /var/log/apache2/error.log
-
