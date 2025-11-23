@@ -21,3 +21,4 @@ echo json_encode(["status" => "success", "posts" => $posts]);
 $conn->close();
 
 ?>
+
