@@ -1,12 +1,12 @@
 $target_dir = "uploads/";
 if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
 
-if (isset($_FILES['post_image']) && !empty($user_id)) {
-    $file_extension = pathinfo($_FILES["post_image"]["name"], PATHINFO_EXTENSION);
+if (isset($_FILES['image_url']) && !empty($user_id)) {
+    $file_extension = pathinfo($_FILES["image_url"]["name"], PATHINFO_EXTENSION);
     $new_filename = "post_" . $user_id . "_" . time() . "." . $file_extension;
     $target_file = $target_dir . $new_filename;
 
-    if (move_uploaded_file($_FILES["post_image"]["tmp_name"], $target_file)) {
+    if (move_uploaded_file($_FILES["image_url"]["tmp_name"], $target_file)) {
         // Only now insert into DB
         $full_url = "https://php-api-production-28f5.up.railway.app/" . $target_file;
 
@@ -24,3 +24,4 @@ if (isset($_FILES['post_image']) && !empty($user_id)) {
 } else {
     echo json_encode(["status" => "error", "message" => "Missing data"]);
 }
+
