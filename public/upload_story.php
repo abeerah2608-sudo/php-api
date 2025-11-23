@@ -12,9 +12,10 @@ if (isset($_FILES['story_image']) && !empty($user_id)) {
     $target_file = $target_dir . $new_filename;
 
     if (move_uploaded_file($_FILES["story_image"]["tmp_name"], $target_file)) {
-        $full_url = "http://192.168.1.10/socially_api/" . $target_file; // CHANGE IP HERE
+        // Use Railway public URL instead of local IP
+        $full_url = "https://php-api-production-28f5.up.railway.app/uploads/" . $new_filename;
 
-        $stmt = $conn->prepare("INSERT INTO stories (user_id, media_url, caption) VALUES (?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO stories (user_id, media_url, caption, created_at) VALUES (?, ?, ?, NOW())");
         $stmt->bind_param("iss", $user_id, $full_url, $caption);
         
         if ($stmt->execute()) {
