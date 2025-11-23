@@ -1,10 +1,11 @@
 <?php
+// Enable error reporting for debugging
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
 require 'db_connect.php';
 header('Content-Type: application/json');
-
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -33,23 +34,24 @@ if ($checkStmt->get_result()->num_rows > 0) {
 
 // Handle image upload
 $profile_pic_url = null;
-if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
-    $target_dir = "public/uploads/"; // Railway path
-    if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
+$target_dir = "uploads/"; // Use uploads/ relative to public root
+if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
 
+if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
     $file_extension = pathinfo($_FILES["profile_pic"]["name"], PATHINFO_EXTENSION);
     $new_filename = uniqid() . "." . $file_extension;
     $target_file = $target_dir . $new_filename;
 
     if (move_uploaded_file($_FILES["profile_pic"]["tmp_name"], $target_file)) {
-        // Use relative path for DB; prepend Railway domain in app
-        $profile_pic_url = "uploads/" . $new_filename;
+        $profile_pic_url = $target_file; // store relative path
     }
 }
 
 // Insert user into DB
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-$stmt = $conn->prepare("INSERT INTO users (username, email, password_hash, profile_pic_url) VALUES (?, ?, ?, ?)");
+$stmt = $conn->prepare(
+    "INSERT INTO users (username, email, password_hash, profile_pic_url) VALUES (?, ?, ?, ?)"
+);
 $stmt->bind_param("ssss", $username, $email, $hashed_password, $profile_pic_url);
 
 if ($stmt->execute()) {
@@ -66,5 +68,3 @@ if ($stmt->execute()) {
 
 $conn->close();
 ?>
-
-
