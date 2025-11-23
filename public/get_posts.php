@@ -3,7 +3,7 @@ require 'db_connect.php';
 header('Content-Type: application/json');
 
 // Updated Query: Fetches Post, User, AND Comment Count
-$sql = "SELECT posts.id as post_id, posts.image_url, posts.caption, posts.created_at, 
+$sql = "SELECT posts.post_id as post_id, posts.image_url, posts.caption, posts.created_at, 
                users.username, users.profile_pic_url,
                (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) as comments_count
         FROM posts 
@@ -19,4 +19,5 @@ while($row = $result->fetch_assoc()) {
 
 echo json_encode(["status" => "success", "posts" => $posts]);
 $conn->close();
+
 ?>
