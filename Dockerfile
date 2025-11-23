@@ -18,3 +18,5 @@ RUN sed -i 's!/var/www/html!/var/www/html!g' /etc/apache2/sites-available/000-de
 EXPOSE 80
 
 CMD ["apache2-foreground"]
+RUN touch /var/log/apache2/error.log && chmod 666 /var/log/apache2/error.log
+
