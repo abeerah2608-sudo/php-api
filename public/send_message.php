@@ -2,20 +2,29 @@
 require 'db_connect.php';
 header('Content-Type: application/json');
 
+require 'vendor/autoload.php';
+use Firebase\JWT\JWT;
+
+// Path to your service account JSON
+$serviceAccountPath = 'serviceAccount.json';
+$serviceAccount = json_decode(file_get_contents($serviceAccountPath), true);
+
+// Get POST data
 $sender_id = $_POST['sender_id'] ?? '';
 $receiver_id = $_POST['receiver_id'] ?? '';
 $message = $_POST['message'] ?? '';
-$type = $_POST['type'] ?? 'text'; // Default to text
+$type = $_POST['type'] ?? 'text';
 
 if (!empty($sender_id) && !empty($receiver_id) && !empty($message)) {
-    
+
+    // Insert message into DB
     $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, message_text, message_type) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("iiss", $sender_id, $receiver_id, $message, $type);
-    
+
     if ($stmt->execute()) {
         $message_id = $stmt->insert_id;
 
-        // Send FCM notification to receiver
+        // Get receiver FCM token
         $tokenQuery = $conn->prepare("SELECT fcm_token FROM users WHERE user_id = ?");
         $tokenQuery->bind_param("i", $receiver_id);
         $tokenQuery->execute();
@@ -24,42 +33,64 @@ if (!empty($sender_id) && !empty($receiver_id) && !empty($message)) {
         $fcm_token = $tokenRow['fcm_token'] ?? '';
 
         if (!empty($fcm_token)) {
-            $fcmUrl = 'https://fcm.googleapis.com/fcm/send';
-            $serverKey = 'YOUR_SERVER_KEY_HERE'; // Replace with your Firebase server key
-
-            $notification = [
-                'title' => 'New Message',
-                'body' => $message
+            // Generate OAuth2 access token using JWT
+            $now = time();
+            $jwt_payload = [
+                "iss" => $serviceAccount['client_email'],
+                "scope" => "https://www.googleapis.com/auth/firebase.messaging",
+                "aud" => $serviceAccount['token_uri'],
+                "iat" => $now,
+                "exp" => $now + 3600
             ];
 
-            $data = [
-                'sender_id' => $sender_id,
-                'message_id' => $message_id
-            ];
+            $jwt = JWT::encode($jwt_payload, $serviceAccount['private_key'], 'RS256');
 
-            $fcmNotification = [
-                'to' => $fcm_token,
-                'notification' => $notification,
-                'data' => $data
-            ];
-
-            $headers = [
-                'Authorization: key=' . $serverKey,
-                'Content-Type: application/json'
-            ];
-
+            // Request access token
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $fcmUrl);
+            curl_setopt($ch, CURLOPT_URL, $serviceAccount['token_uri']);
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fcmNotification));
-            curl_exec($ch);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                'assertion' => $jwt
+            ]));
+            $response = json_decode(curl_exec($ch), true);
             curl_close($ch);
+
+            $accessToken = $response['access_token'] ?? '';
+
+            if (!empty($accessToken)) {
+                $fcmUrl = "https://fcm.googleapis.com/v1/projects/{$serviceAccount['project_id']}/messages:send";
+
+                $fcmNotification = [
+                    "message" => [
+                        "token" => $fcm_token,
+                        "notification" => [
+                            "title" => "New Message",
+                            "body" => $message
+                        ],
+                        "data" => [
+                            "sender_id" => $sender_id,
+                            "message_id" => $message_id
+                        ]
+                    ]
+                ];
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $fcmUrl);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    "Authorization: Bearer $accessToken",
+                    "Content-Type: application/json"
+                ]);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fcmNotification));
+                curl_exec($ch);
+                curl_close($ch);
+            }
         }
 
-        // Return the inserted message ID
         echo json_encode(["status" => "success", "message_id" => $message_id]);
     } else {
         echo json_encode(["status" => "error", "message" => "DB Insert Failed"]);
@@ -67,4 +98,5 @@ if (!empty($sender_id) && !empty($receiver_id) && !empty($message)) {
 } else {
     echo json_encode(["status" => "error", "message" => "Missing fields"]);
 }
-?>
+
+$conn->close();
