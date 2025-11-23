@@ -1,8 +1,10 @@
 <?php
-// Enable error reporting for debugging
+// At the top of signup.php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
+file_put_contents("/tmp/php_debug.log", date('Y-m-d H:i:s') . " Signup accessed\n", FILE_APPEND);
 
 require 'db_connect.php';
 header('Content-Type: application/json');
@@ -68,3 +70,4 @@ if ($stmt->execute()) {
 
 $conn->close();
 ?>
+
