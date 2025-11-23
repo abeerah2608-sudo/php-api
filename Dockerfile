@@ -1,20 +1,20 @@
-# Use official PHP image with Apache
 FROM php:8.2-apache
 
-# Copy all files to Apache's root
+# Install mysqli extension
+RUN docker-php-ext-install mysqli
+
+# Copy all files
 COPY . /var/www/html/
 
-# Set public folder as Apache DocumentRoot
+# Set public folder as DocumentRoot
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
-# Enable mod_rewrite (optional, but useful)
+# Enable mod_rewrite
 RUN a2enmod rewrite
 
-# Make sure uploads folder exists and is writable
+# Ensure uploads folder exists
 RUN mkdir -p /var/www/html/public/uploads && chmod -R 777 /var/www/html/public/uploads
 
-# Expose port
 EXPOSE 80
 
-# Start Apache in foreground
 CMD ["apache2-foreground"]
