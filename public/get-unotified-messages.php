@@ -4,7 +4,7 @@ header('Content-Type: application/json');
 
 // Basic auth or API key recommended: (optional) check here
 
-$sql = "SELECT m.message_id, m.sender_id, m.receiver_id, m.message_text AS message, m.fcm_token
+$sql = "SELECT m.message_id, m.sender_id, m.receiver_id, m.message_text AS message, u.fcm_token
         FROM messages m
         JOIN users u ON u.user_id = m.receiver_id
         WHERE m.notification_sent = 0
