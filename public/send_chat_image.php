@@ -17,7 +17,7 @@ if (isset($_FILES['image']) && !empty($sender_id) && !empty($receiver_id)) {
         $full_url = "http://192.168.1.10/socially_api/" . $target_file;
 
         // 2. Insert into DB (Type = 'image')
-        $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, message_text, media_url, message_type) VALUES (?, ?, '', ?, 'image')");
+        $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, message_text, media_url, message_type,notification_sent) VALUES (?, ?, '', ?, 'image',0)");
         $stmt->bind_param("iis", $sender_id, $receiver_id, $full_url);
         
         if ($stmt->execute()) {
@@ -31,4 +31,5 @@ if (isset($_FILES['image']) && !empty($sender_id) && !empty($receiver_id)) {
 } else {
     echo json_encode(["status" => "error", "message" => "Missing data"]);
 }
+
 ?>
