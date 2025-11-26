@@ -1,5 +1,8 @@
 <?php
 require 'db_connect.php';
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+
 header('Content-Type: application/json');
 
 require 'vendor/autoload.php';
@@ -101,4 +104,5 @@ $stmt->bind_param("iiss", $sender_id, $receiver_id, $message, $type);
 }
 
 $conn->close();
+
 
