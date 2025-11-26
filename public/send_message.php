@@ -5,7 +5,6 @@ ini_set("display_errors", 1);
 
 header('Content-Type: application/json');
 
-require 'vendor/autoload.php';
 use Firebase\JWT\JWT;
 
 // Path to your service account JSON
@@ -104,5 +103,6 @@ $stmt->bind_param("iiss", $sender_id, $receiver_id, $message, $type);
 }
 
 $conn->close();
+
 
 
