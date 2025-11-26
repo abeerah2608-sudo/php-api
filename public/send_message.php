@@ -18,8 +18,9 @@ $type = $_POST['type'] ?? 'text';
 if (!empty($sender_id) && !empty($receiver_id) && !empty($message)) {
 
     // Insert message into DB
-    $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, message_text, message_type) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("iiss", $sender_id, $receiver_id, $message, $type);
+  // inside your existing send_message.php after validation:
+$stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, message_text, message_type, notification_sent) VALUES (?, ?, ?, ?, 0)");
+$stmt->bind_param("iiss", $sender_id, $receiver_id, $message, $type);
 
     if ($stmt->execute()) {
         $message_id = $stmt->insert_id;
@@ -100,3 +101,4 @@ if (!empty($sender_id) && !empty($receiver_id) && !empty($message)) {
 }
 
 $conn->close();
+
