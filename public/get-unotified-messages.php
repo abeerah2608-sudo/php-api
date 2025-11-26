@@ -1,5 +1,5 @@
 <?php
-require '../db_connect.php';
+require 'db_connect.php';
 header('Content-Type: application/json');
 
 // Basic auth or API key recommended: (optional) check here
