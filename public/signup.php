@@ -1,5 +1,5 @@
 <?php
-// At the top of signup.php
+// Enable error reporting for debugging
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -36,7 +36,7 @@ if ($checkStmt->get_result()->num_rows > 0) {
 
 // Handle image upload
 $profile_pic_url = null;
-$target_dir = "uploads/"; // Use uploads/ relative to public root
+$target_dir = "uploads/";
 if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
 
 if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
@@ -57,12 +57,15 @@ $stmt = $conn->prepare(
 $stmt->bind_param("ssss", $username, $email, $hashed_password, $profile_pic_url);
 
 if ($stmt->execute()) {
+    // Return a 'user' object for Android
     echo json_encode([
         "status" => "success",
         "message" => "Registered",
-        "user_id" => $stmt->insert_id,
-        "username" => $username,
-        "profile_pic" => $profile_pic_url
+        "user" => [
+            "id" => $stmt->insert_id,
+            "username" => $username,
+            "profile_pic" => $profile_pic_url
+        ]
     ]);
 } else {
     echo json_encode(["status" => "error", "message" => "DB Insert Failed"]);
@@ -70,4 +73,3 @@ if ($stmt->execute()) {
 
 $conn->close();
 ?>
-
