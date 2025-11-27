@@ -9,6 +9,9 @@ file_put_contents("/tmp/php_debug.log", date('Y-m-d H:i:s') . " Signup accessed\
 require 'db_connect.php';
 header('Content-Type: application/json');
 
+// Base URL for files
+$base_url = "https://php-api-production-28f5.up.railway.app/";
+
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(["status" => "error", "message" => "Method not allowed"]);
@@ -45,7 +48,8 @@ if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
     $target_file = $target_dir . $new_filename;
 
     if (move_uploaded_file($_FILES["profile_pic"]["tmp_name"], $target_file)) {
-        $profile_pic_url = $target_file; // store relative path
+        // Store the full URL like stories
+        $profile_pic_url = $base_url . $new_filename;
     }
 }
 
