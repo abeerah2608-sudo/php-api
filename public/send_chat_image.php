@@ -15,6 +15,7 @@ if (isset($_FILES['image']) && !empty($sender_id) && !empty($receiver_id)) {
         // 1. Get Full URL
         // UPDATE THIS IP to match your computer's IP
         $full_url = "http://192.168.1.10/socially_api/" . $target_file;
+$full_url = "https://php-api-production-28f5.up.railway.app/uploads/" . $new_filename;
 
         // 2. Insert into DB (Type = 'image')
         $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, message_text, media_url, message_type,notification_sent) VALUES (?, ?, '', ?, 'image',0)");
@@ -33,3 +34,4 @@ if (isset($_FILES['image']) && !empty($sender_id) && !empty($receiver_id)) {
 }
 
 ?>
+
