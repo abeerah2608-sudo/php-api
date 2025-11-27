@@ -6,14 +6,12 @@ $user_id = $_GET['user_id'] ?? 0;
 $my_id = $_GET['my_id'] ?? 0; // optional: logged-in user for follow status
 
 if ($user_id) {
-    // 1️⃣ Get User Details
     $userQuery = $conn->prepare("SELECT user_id, username, profile_pic_url FROM users WHERE user_id = ?");
     $userQuery->bind_param("i", $user_id);
     $userQuery->execute();
     $userResult = $userQuery->get_result()->fetch_assoc();
 
     if ($userResult) {
-        // 2️⃣ Get Counts
 
         // Posts count
         $stmt = $conn->prepare("SELECT COUNT(*) AS posts_count FROM posts WHERE user_id = ?");
@@ -56,3 +54,4 @@ if ($user_id) {
     echo json_encode(["status" => "error", "message" => "Missing ID"]);
 }
 ?>
+
