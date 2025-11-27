@@ -3,7 +3,7 @@ require 'db_connect.php';
 header('Content-Type: application/json');
 
 $user_id = $_GET['user_id'] ?? 0;
-$my_id = $_GET['my_id'] ?? 0; // optional: logged-in user for follow status
+$my_id = $_GET['my_id'] ?? 0; 
 
 if ($user_id) {
     $userQuery = $conn->prepare("SELECT user_id, username, profile_pic_url FROM users WHERE user_id = ?");
@@ -12,46 +12,43 @@ if ($user_id) {
     $userResult = $userQuery->get_result()->fetch_assoc();
 
     if ($userResult) {
+        $baseUrl = "https://php-api-production-28f5.up.railway.app/uploads/";
+        if (!empty($userResult['profile_pic_url'])) {
+            $userResult['profile_pic_url'] = $baseUrl . $userResult['profile_pic_url'];
+        }
 
-        // Posts count
+        // Counts
         $stmt = $conn->prepare("SELECT COUNT(*) AS posts_count FROM posts WHERE user_id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
-        $posts_count = $stmt->get_result()->fetch_assoc()['posts_count'];
+        $userResult['posts_count'] = $stmt->get_result()->fetch_assoc()['posts_count'];
 
-        // Followers count
-        $stmt = $conn->prepare("SELECT COUNT(*) AS followers_count FROM follow_requests WHERE target_id = ? AND status = 'accepted'");
+        $stmt = $conn->prepare("SELECT COUNT(*) AS followers_count FROM follow_requests WHERE target_id = ? AND status='accepted'");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
-        $followers_count = $stmt->get_result()->fetch_assoc()['followers_count'];
+        $userResult['followers_count'] = $stmt->get_result()->fetch_assoc()['followers_count'];
 
-        // Following count
-        $stmt = $conn->prepare("SELECT COUNT(*) AS following_count FROM follow_requests WHERE requester_id = ? AND status = 'accepted'");
+        $stmt = $conn->prepare("SELECT COUNT(*) AS following_count FROM follow_requests WHERE requester_id = ? AND status='accepted'");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
-        $following_count = $stmt->get_result()->fetch_assoc()['following_count'];
+        $userResult['following_count'] = $stmt->get_result()->fetch_assoc()['following_count'];
 
-        // 3️⃣ Optional: Check if logged-in user is following this target
+        // Check if logged-in user follows target
         $is_following = false;
         if ($my_id) {
-            $stmt = $conn->prepare("SELECT 1 FROM follow_requests WHERE requester_id = ? AND target_id = ? AND status = 'accepted'");
+            $stmt = $conn->prepare("SELECT 1 FROM follow_requests WHERE requester_id=? AND target_id=? AND status='accepted'");
             $stmt->bind_param("ii", $my_id, $user_id);
             $stmt->execute();
             $is_following = $stmt->get_result()->num_rows > 0;
         }
 
-        // Merge counts into result
-        $userResult['posts_count'] = (int)$posts_count;
-        $userResult['followers_count'] = (int)$followers_count;
-        $userResult['following_count'] = (int)$following_count;
         $userResult['is_following'] = $is_following;
 
-        echo json_encode(["status" => "success", "user" => $userResult]);
+        echo json_encode(["status"=>"success","user"=>$userResult]);
     } else {
-        echo json_encode(["status" => "error", "message" => "User not found"]);
+        echo json_encode(["status"=>"error","message"=>"User not found"]);
     }
 } else {
-    echo json_encode(["status" => "error", "message" => "Missing ID"]);
+    echo json_encode(["status"=>"error","message"=>"Missing ID"]);
 }
 ?>
-
