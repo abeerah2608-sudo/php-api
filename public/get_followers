@@ -1,0 +1,16 @@
+<?php
+include 'db.php';
+
+$userId = $_GET['user_id'];
+
+$stmt = $pdo->prepare("
+    SELECT u.id, u.username 
+    FROM follow_requests fr
+    JOIN users u ON fr.requester_id = u.id
+    WHERE fr.target_id = ? AND fr.status = 'accepted'
+");
+$stmt->execute([$userId]);
+$followers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+echo json_encode(["status" => "success", "followers" => $followers]);
+?>
