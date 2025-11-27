@@ -1,0 +1,22 @@
+<?php
+include 'db.php'; // your PDO connection
+
+$userId = $_POST['user_id']; // requester
+$targetId = $_POST['target_id']; // target user
+
+// Check if request already exists
+$stmt = $pdo->prepare("SELECT * FROM follow_requests WHERE requester_id = ? AND target_id = ?");
+$stmt->execute([$userId, $targetId]);
+if($stmt->rowCount() > 0){
+    echo json_encode(["status" => "error", "message" => "Follow request already sent"]);
+    exit;
+}
+
+// Insert follow request
+$stmt = $pdo->prepare("INSERT INTO follow_requests (requester_id, target_id) VALUES (?, ?)");
+if($stmt->execute([$userId, $targetId])){
+    echo json_encode(["status" => "success", "message" => "Follow request sent"]);
+}else{
+    echo json_encode(["status" => "error", "message" => "Something went wrong"]);
+}
+?>
