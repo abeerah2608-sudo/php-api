@@ -9,8 +9,8 @@ file_put_contents("/tmp/php_debug.log", date('Y-m-d H:i:s') . " Signup accessed\
 require 'db_connect.php';
 header('Content-Type: application/json');
 
-// Base URL for files
-$base_url = "https://php-api-production-28f5.up.railway.app/";
+// Base URL for uploaded files
+$base_url = "https://php-api-production-28f5.up.railway.app/uploads/";
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -48,7 +48,7 @@ if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
     $target_file = $target_dir . $new_filename;
 
     if (move_uploaded_file($_FILES["profile_pic"]["tmp_name"], $target_file)) {
-        // Store the full URL like stories
+        // full URL with /uploads/
         $profile_pic_url = $base_url . $new_filename;
     }
 }
@@ -61,7 +61,6 @@ $stmt = $conn->prepare(
 $stmt->bind_param("ssss", $username, $email, $hashed_password, $profile_pic_url);
 
 if ($stmt->execute()) {
-    // Return a 'user' object for Android
     echo json_encode([
         "status" => "success",
         "message" => "Registered",
